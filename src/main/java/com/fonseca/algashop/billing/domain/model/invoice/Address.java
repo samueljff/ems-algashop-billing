@@ -1,8 +1,12 @@
 package com.fonseca.algashop.billing.domain.model.invoice;
 
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
+@Getter
+@Setter(AccessLevel.PRIVATE)
 @EqualsAndHashCode
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Address {
     private String street;
     private String number;

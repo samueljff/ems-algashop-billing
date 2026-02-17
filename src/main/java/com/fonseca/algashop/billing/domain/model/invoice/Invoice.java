@@ -1,14 +1,18 @@
 package com.fonseca.algashop.billing.domain.model.invoice;
 
-import lombok.EqualsAndHashCode;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+@Setter(AccessLevel.PRIVATE)
+@Getter
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Invoice {
 
     @EqualsAndHashCode.Include
@@ -25,4 +29,21 @@ public class Invoice {
     private Set<LineItem> items = new HashSet<>();
     private Payer payer;
     private String cancelReason;
+
+    public Set<LineItem> getItems() {
+        return Collections.unmodifiableSet(this.items);
+    }
+
+    public void markAsPaid() {
+    }
+
+    public void cancel() {
+    }
+
+    public void assignPaymentGatewayCode(String code) {
+    }
+
+    public void changePaymentSettings(PaymentMethod paymentMethod, UUID creditCard) {
+    }
+
 }
