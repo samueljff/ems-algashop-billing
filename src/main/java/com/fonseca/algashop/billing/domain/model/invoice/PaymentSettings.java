@@ -1,8 +1,11 @@
 package com.fonseca.algashop.billing.domain.model.invoice;
 
+import com.fonseca.algashop.billing.domain.model.DomainException;
 import com.fonseca.algashop.billing.domain.model.IdGenerator;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Setter(AccessLevel.PRIVATE)
@@ -18,7 +21,11 @@ public class PaymentSettings {
     private String gatewayCode;
     private PaymentMethod paymentMethod;
 
-    public static PaymentSettings brandNew(PaymentMethod paymentMethod, UUID creditCardId) {
+    static PaymentSettings brandNew(PaymentMethod paymentMethod, UUID creditCardId) {
+        Objects.requireNonNull(paymentMethod);
+        if (paymentMethod.equals(PaymentMethod.CREDIT_CARD)){
+            Objects.requireNonNull(creditCardId);
+        }
         return new PaymentSettings(
                 IdGenerator.generateTimeBasedUUID(),
                 creditCardId,
@@ -27,7 +34,14 @@ public class PaymentSettings {
         );
     }
 
-    void assignGatewayCode(String gatewayCode){
+    void assignGatewayCode(String gatewayCode) {
+        if (StringUtils.isAllBlank()) {
+            throw new IllegalArgumentException("Gateway of payment Invalid!");
+        }
+
+        if (this.getGatewayCode() != null) {
+            throw new DomainException("Gateway code already assign");
+        }
         setGatewayCode(gatewayCode);
     }
 }

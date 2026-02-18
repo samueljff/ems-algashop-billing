@@ -3,13 +3,11 @@ package com.fonseca.algashop.billing.domain.model.invoice;
 import com.fonseca.algashop.billing.domain.model.DomainException;
 import com.fonseca.algashop.billing.domain.model.IdGenerator;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.fonseca.algashop.billing.domain.model.ErrorMessages.*;
 
@@ -36,6 +34,18 @@ public class Invoice {
     private String cancelReason;
 
     public static Invoice issue(String orderId, UUID customerId, Payer payer, Set<LineItem> items){
+        Objects.requireNonNull(customerId);
+        Objects.requireNonNull(payer);
+        Objects.requireNonNull(items);
+
+        if (StringUtils.isAllBlank(orderId)){
+            throw new IllegalArgumentException("Invalid OrderId for the invoice");
+        }
+
+        if (items.isEmpty()){
+            throw new IllegalArgumentException("Invalid data list, empty list");
+        }
+
         BigDecimal totalAmount = items.stream().map(LineItem::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new Invoice(
