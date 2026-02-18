@@ -1,5 +1,6 @@
 package com.fonseca.algashop.billing.domain.model.invoice;
 
+import com.fonseca.algashop.billing.domain.model.DomainException;
 import com.fonseca.algashop.billing.domain.model.IdGenerator;
 import lombok.*;
 
@@ -9,6 +10,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import static com.fonseca.algashop.billing.domain.model.ErrorMessages.*;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter
@@ -56,16 +59,49 @@ public class Invoice {
         return Collections.unmodifiableSet(this.items);
     }
 
-    public void markAsPaid() {
+    public boolean isCanceled(){
+        return InvoiceStatus.CANCELED.equals(this.getStatus());
     }
 
-    public void cancel() {
+    public boolean isUnPaid(){
+        return InvoiceStatus.UNPAID.equals(this.getStatus());
+    }
+
+    public boolean isPaid(){
+        return InvoiceStatus.PAID.equals(this.getStatus());
+    }
+
+    public void markAsPaid() {
+        if (!isUnPaid()) {
+            throw new DomainException(String.format(ERROR_INVOICE_CANNOT_BE_MARKED_AS_PAID,
+                    this.getId(), this.getStatus().toString().toLowerCase()));
+        }
+        setPaidAt(OffsetDateTime.now());
+        setStatus(InvoiceStatus.PAID);
+    }
+
+    public void cancel(String cancelReason) {
+        if (isCanceled()){
+            throw new DomainException(String.format(ERROR_INVOICE_ALREADY_CANCELED, this.getId()));
+        }
+        setCancelReason(cancelReason);
+        setCanceledAt(OffsetDateTime.now());
+        setStatus(InvoiceStatus.CANCELED);
     }
 
     public void assignPaymentGatewayCode(String code) {
+        if (!isUnPaid()) {
+            throw new DomainException(String.format(ERROR_INVOICE_CANNOT_BE_EDITED,
+                    this.getId(), this.getStatus().toString().toLowerCase()));
+        }
+        this.getPaymentSettings().assignGatewayCode(code);
     }
 
     public void changePaymentSettings(PaymentMethod paymentMethod, UUID creditCardId) {
+        if (!isUnPaid()) {
+            throw new DomainException(String.format(ERROR_INVOICE_CANNOT_BE_EDITED,
+                    this.getId(), this.getStatus().toString().toLowerCase()));
+        }
         PaymentSettings paymentSettings1 = PaymentSettings.brandNew(paymentMethod, creditCardId);
         this.setPaymentSettings(paymentSettings);
     }
