@@ -112,7 +112,7 @@ public class Invoice {
             throw new DomainException(String.format(ERROR_INVOICE_CANNOT_BE_EDITED,
                     this.getId(), this.getStatus().toString().toLowerCase()));
         }
-        PaymentSettings paymentSettings1 = PaymentSettings.brandNew(paymentMethod, creditCardId);
+        PaymentSettings paymentSettings = PaymentSettings.brandNew(paymentMethod, creditCardId);
         this.setPaymentSettings(paymentSettings);
     }
 

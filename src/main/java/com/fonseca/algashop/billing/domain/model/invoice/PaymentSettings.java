@@ -35,7 +35,7 @@ public class PaymentSettings {
     }
 
     void assignGatewayCode(String gatewayCode) {
-        if (StringUtils.isAllBlank()) {
+        if (StringUtils.isAllBlank(gatewayCode)) {
             throw new IllegalArgumentException("Gateway of payment Invalid!");
         }
 
