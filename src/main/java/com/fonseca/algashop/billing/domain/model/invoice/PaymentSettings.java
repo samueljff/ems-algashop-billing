@@ -2,6 +2,9 @@ package com.fonseca.algashop.billing.domain.model.invoice;
 
 import com.fonseca.algashop.billing.domain.model.DomainException;
 import com.fonseca.algashop.billing.domain.model.IdGenerator;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToOne;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,7 +22,14 @@ public class PaymentSettings {
     private UUID id;
     private UUID creditCardId;
     private String gatewayCode;
+
+    @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;
+
+    @OneToOne(mappedBy = "paymentSettings")
+    @Getter(AccessLevel.PRIVATE)
+    @Setter(AccessLevel.PACKAGE)
+    private Invoice invoice;
 
     static PaymentSettings brandNew(PaymentMethod paymentMethod, UUID creditCardId) {
         Objects.requireNonNull(paymentMethod);
@@ -30,7 +40,8 @@ public class PaymentSettings {
                 IdGenerator.generateTimeBasedUUID(),
                 creditCardId,
                 null,
-                paymentMethod
+                paymentMethod,
+                null
         );
     }
 

@@ -2,6 +2,7 @@ package com.fonseca.algashop.billing.domain.model.invoice;
 
 import com.fonseca.algashop.billing.domain.model.DomainException;
 import com.fonseca.algashop.billing.domain.model.IdGenerator;
+import jakarta.persistence.*;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,8 +17,10 @@ import static com.fonseca.algashop.billing.domain.model.ErrorMessages.*;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity
 public class Invoice {
 
+    @Id
     @EqualsAndHashCode.Include
     private UUID id;
     private String orderId;
@@ -27,7 +30,10 @@ public class Invoice {
     private OffsetDateTime canceledAt;
     private OffsetDateTime expiresAt;
     private BigDecimal totalAmount;
+
+    @Enumerated(EnumType.STRING)
     private InvoiceStatus status;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private PaymentSettings paymentSettings;
     private Set<LineItem> items = new HashSet<>();
     private Payer payer;
@@ -113,6 +119,7 @@ public class Invoice {
                     this.getId(), this.getStatus().toString().toLowerCase()));
         }
         PaymentSettings paymentSettings = PaymentSettings.brandNew(paymentMethod, creditCardId);
+        paymentSettings.setInvoice(this);
         this.setPaymentSettings(paymentSettings);
     }
 
