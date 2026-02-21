@@ -14,5 +14,10 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: 'true'
+
+logging:
+  level:
+    org.springframework.boot.autoconfigure.h2: DEBUG
+    org.h2: DEBUG
