@@ -94,7 +94,7 @@ public class Invoice {
 
     public void markAsPaid() {
         if (!isUnPaid()) {
-            throw new DomainException(String.format(ERROR_INVOICE_CANNOT_BE_MARKED_AS_PAID,
+            throw new DomainException(String.format(INVOICE_CANNOT_BE_MARKED_AS_PAID,
                     this.getId(), this.getStatus().toString().toLowerCase()));
         }
         setPaidAt(OffsetDateTime.now());
@@ -103,7 +103,7 @@ public class Invoice {
 
     public void cancel(String cancelReason) {
         if (isCanceled()){
-            throw new DomainException(String.format(ERROR_INVOICE_ALREADY_CANCELED, this.getId()));
+            throw new DomainException(String.format(INVOICE_ALREADY_CANCELED, this.getId()));
         }
         setCancelReason(cancelReason);
         setCanceledAt(OffsetDateTime.now());
@@ -112,7 +112,7 @@ public class Invoice {
 
     public void assignPaymentGatewayCode(String code) {
         if (!isUnPaid()) {
-            throw new DomainException(String.format(ERROR_INVOICE_CANNOT_BE_EDITED,
+            throw new DomainException(String.format(INVOICE_CANNOT_BE_EDITED,
                     this.getId(), this.getStatus().toString().toLowerCase()));
         }
         this.getPaymentSettings().assignGatewayCode(code);
@@ -120,7 +120,7 @@ public class Invoice {
 
     public void changePaymentSettings(PaymentMethod paymentMethod, UUID creditCardId) {
         if (!isUnPaid()) {
-            throw new DomainException(String.format(ERROR_INVOICE_CANNOT_BE_EDITED,
+            throw new DomainException(String.format(INVOICE_CANNOT_BE_EDITED,
                     this.getId(), this.getStatus().toString().toLowerCase()));
         }
         PaymentSettings paymentSettings = PaymentSettings.brandNew(paymentMethod, creditCardId);
