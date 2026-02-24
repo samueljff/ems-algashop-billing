@@ -1,0 +1,5 @@
+package com.fonseca.algashop.billing.application.utility;
+
+public interface Mapper {
+    <T> T convert(Object o, Class<T> destinationClass);
+}

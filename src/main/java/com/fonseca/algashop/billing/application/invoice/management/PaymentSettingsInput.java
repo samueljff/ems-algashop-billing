@@ -1,4 +1,4 @@
-package com.fonseca.algashop.billing.aplication.invoice.management;
+package com.fonseca.algashop.billing.application.invoice.management;
 
 import com.fonseca.algashop.billing.domain.model.invoice.PaymentMethod;
 import lombok.AllArgsConstructor;
