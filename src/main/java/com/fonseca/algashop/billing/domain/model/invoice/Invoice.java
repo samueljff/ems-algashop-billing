@@ -1,5 +1,6 @@
 package com.fonseca.algashop.billing.domain.model.invoice;
 
+import com.fonseca.algashop.billing.domain.model.AbstractAuditableEntity;
 import com.fonseca.algashop.billing.domain.model.DomainException;
 import com.fonseca.algashop.billing.domain.model.IdGenerator;
 import jakarta.persistence.*;
@@ -14,11 +15,11 @@ import static com.fonseca.algashop.billing.domain.model.ErrorMessages.*;
 
 @Setter(AccessLevel.PRIVATE)
 @Getter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class Invoice {
+public class Invoice extends AbstractAuditableEntity {
 
     @Id
     @EqualsAndHashCode.Include
