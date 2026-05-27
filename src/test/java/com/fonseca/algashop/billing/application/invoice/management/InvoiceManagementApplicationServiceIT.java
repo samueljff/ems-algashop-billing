@@ -15,16 +15,19 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 
+@Testcontainers
 @SpringBootTest
-@Transactional
+@ActiveProfiles("test")
 class InvoiceManagementApplicationServiceIT {
     @Autowired
     private InvoiceManagementApplicationService applicationService;
