@@ -13,11 +13,12 @@ spring:
     show-sql: true
   flyway:
     enabled: true
-    locations: classpath:db/testdata
+    locations: classpath:db/migration
     user: postgres
     password: postgres
     url: jdbc:postgresql://localhost:5432/billing_test
 logging:
   level:
+    org.flywaydb: DEBUG
     org.springframework.boot.autoconfigure.jdbc: DEBUG
     org.postgresql: DEBUG

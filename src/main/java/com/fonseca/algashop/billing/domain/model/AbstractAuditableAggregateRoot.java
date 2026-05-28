@@ -25,10 +25,10 @@ public abstract class AbstractAuditableAggregateRoot< T extends AbstractAggregat
     protected OffsetDateTime createdAt;
 
     @LastModifiedBy
-    protected UUID lasModifiedByUserId;
+    protected UUID lastModifiedByUserId;
 
     @LastModifiedDate
-    protected OffsetDateTime lasModifiedDate;
+    protected OffsetDateTime lastModifiedDate;
 
     @Version
     protected long version;

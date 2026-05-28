@@ -16,7 +16,7 @@ create table public.payment_settings (
     id uuid not null,
     credit_card_id uuid,
     gateway_code varchar(255),
-    "method" varchar(255),
+    payment_method varchar(255),
     primary key (id)
 );
 
