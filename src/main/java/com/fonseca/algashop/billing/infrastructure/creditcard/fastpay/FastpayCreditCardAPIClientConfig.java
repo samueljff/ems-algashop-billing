@@ -12,12 +12,12 @@ public class FastpayCreditCardAPIClientConfig {
 
     @Bean
     public FastPayCreditCardAPIClient fastPayCreditCardAPIClient(
-        RestClient.Builder builder,
         AlgaShopPaymentProperties properties
     ) {
         var fastpayProperties = properties.getFastpay();
 
-        RestClient restClient = builder.baseUrl(fastpayProperties.getHostname())
+        RestClient restClient = RestClient.builder()
+            .baseUrl(fastpayProperties.getHostname())
             .requestInterceptor(((request, body, execution) -> {
                 request.getHeaders().add("Token", fastpayProperties.getPrivateToken());
                 return execution.execute(request, body);

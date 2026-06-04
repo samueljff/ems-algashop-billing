@@ -14,12 +14,11 @@ public class FastpayCreditCardTokenizationAPIClientConfig {
 
     @Bean
     public FastpayCreditCardTokenizationAPIClient fastpayCreditCardTokenizationAPIClient(
-        RestClient.Builder builder,
-        AlgaShopPaymentProperties propreties,
+        AlgaShopPaymentProperties properties,
         @Value("${algashop.integrations.payment.fastpay.public-token}") String publicToken
     ) {
 
-        var fastpayProperties = propreties.getFastpay();
+        var fastpayProperties = properties.getFastpay();
 
         RestClient restClient = RestClient.builder()
             .baseUrl(fastpayProperties.getHostname())
