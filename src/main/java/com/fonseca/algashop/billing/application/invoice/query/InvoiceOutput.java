@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class InvoiceOutPut {
+public class InvoiceOutput {
     private UUID id;
     private String orderId;
     private UUID customerId;

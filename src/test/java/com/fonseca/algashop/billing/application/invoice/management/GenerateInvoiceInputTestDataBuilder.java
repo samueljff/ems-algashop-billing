@@ -3,7 +3,7 @@ package com.fonseca.algashop.billing.application.invoice.management;
 import com.fonseca.algashop.billing.domain.model.invoice.PaymentMethod;
 
 import java.math.BigDecimal;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 public class GenerateInvoiceInputTestDataBuilder {
@@ -30,7 +30,7 @@ public class GenerateInvoiceInputTestDataBuilder {
                                 .zipCode("12345-678")
                                 .build())
                         .build())
-                .items(Set.of(LineItemInput.builder()
+                .items(List.of(LineItemInput.builder()
                         .name("Product 1")
                         .amount(new BigDecimal("200.00"))
                         .build()));

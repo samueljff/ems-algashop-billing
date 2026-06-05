@@ -18,7 +18,7 @@ spring:
     password: postgres
     url: jdbc:postgresql://localhost:5432/billing
 
-lgashop:
+algashop:
   integrations:
     payment:
       provider: FASTPAY #FAKE

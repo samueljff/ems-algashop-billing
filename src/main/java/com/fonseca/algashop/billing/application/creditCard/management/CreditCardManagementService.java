@@ -15,7 +15,7 @@ public class CreditCardManagementService {
     private final CreditCardProviderService creditCardProviderService;
 
     @Transactional
-    private UUID register(TokenizedCreditCardInput input){
+    public UUID register(TokenizedCreditCardInput input){
         LimitedCreditCard limitedCreditCard = creditCardProviderService.register(input.getCustomerId(), input.getTokenizedCard());
 
         CreditCard creditCard = CreditCard.brandNew(
