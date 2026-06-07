@@ -21,15 +21,6 @@ public class InvoiceQueryServiceImpl implements InvoiceQueryService {
     @Override
     public InvoiceOutput findByOrderId(String orderId) {
         Invoice invoice = invoiceRepository.findByOrderId(orderId).orElseThrow(() -> new InvoiceNotFoundException());
-        System.out.println(invoice.getPaymentSettings());
-        System.out.println(invoice.getPaymentSettings().getPaymentMethod());
-        InvoiceOutput output = mapper.convert(invoice, InvoiceOutput.class);
-
-        System.out.println(output.getPaymentSettings());
-
-        if (output.getPaymentSettings() != null) {
-            System.out.println(output.getPaymentSettings().getPaymentMethod());
-        }
-        return output;
+        return mapper.convert(invoice, InvoiceOutput.class);
     }
 }

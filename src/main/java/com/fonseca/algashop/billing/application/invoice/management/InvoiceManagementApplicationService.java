@@ -6,6 +6,7 @@ import com.fonseca.algashop.billing.domain.model.invoice.*;
 import com.fonseca.algashop.billing.domain.model.invoice.payment.Payment;
 import com.fonseca.algashop.billing.domain.model.invoice.payment.PaymentGatewayService;
 import com.fonseca.algashop.billing.domain.model.invoice.payment.PaymentRequest;
+import com.fonseca.algashop.billing.domain.model.invoice.payment.PaymentStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -60,6 +61,13 @@ public class InvoiceManagementApplicationService {
         }
 
         invoicingService.assignPayment(invoice, payment);
+        invoiceRepository.saveAndFlush(invoice);
+    }
+
+    @Transactional
+    public void updatePaymentStatus(UUID invoiceId, PaymentStatus paymentStatus) {
+        Invoice invoice = invoiceRepository.findById(invoiceId).orElseThrow(() -> new InvoiceNotFoundException());
+        invoice.updatePaymentStatus(paymentStatus);
         invoiceRepository.saveAndFlush(invoice);
     }
 

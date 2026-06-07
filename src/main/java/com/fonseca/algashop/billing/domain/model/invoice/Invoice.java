@@ -3,6 +3,7 @@ package com.fonseca.algashop.billing.domain.model.invoice;
 import com.fonseca.algashop.billing.domain.model.AbstractAuditableAggregateRoot;
 import com.fonseca.algashop.billing.domain.model.DomainException;
 import com.fonseca.algashop.billing.domain.model.IdGenerator;
+import com.fonseca.algashop.billing.domain.model.invoice.payment.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
@@ -133,6 +134,14 @@ public class Invoice extends AbstractAuditableAggregateRoot<Invoice> {
         PaymentSettings paymentSettings = PaymentSettings.brandNew(paymentMethod, creditCardId);
         paymentSettings.setInvoice(this);
         this.setPaymentSettings(paymentSettings);
+    }
+
+    public void updatePaymentStatus(PaymentStatus status) {
+        switch (status) {
+            case FAILED -> cancel("Payment failed");
+            case REFUNDED -> cancel("Payment refunded");
+            case PAID -> markAsPaid();
+        }
     }
 
 }
