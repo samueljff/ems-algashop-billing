@@ -2,11 +2,18 @@ package com.fonseca.algashop.billing.infrastructure;
 
 import com.fonseca.algashop.billing.domain.model.creditcard.LimitedCreditCard;
 import com.fonseca.algashop.billing.infrastructure.creditcard.fastpay.*;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.TemplateEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 import java.time.Year;
+import java.util.Collections;
 import java.util.UUID;
+
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 @Import({FastpayCreditCardTokenizationAPIClientConfig.class})
 public abstract class AbstractFastpayIT {
@@ -19,6 +26,26 @@ public abstract class AbstractFastpayIT {
 
     @Autowired
     protected FastpayCreditCardTokenizationAPIClient tokenizationAPIClient;
+
+    protected static WireMockServer wiremockFastpay;
+
+    public static void startMock(){
+        wiremockFastpay = new WireMockServer(options()
+            .port(8788)
+            .usingFilesUnderDirectory("src/test/resources/wiremock/fastpay")
+            .extensions(new ResponseTemplateTransformer(
+                TemplateEngine.defaultTemplateEngine(),
+                true,
+                new ClasspathFileSource("src/test/resources/wiremock/fastpay"),
+                Collections.emptyList()
+            )));
+
+        wiremockFastpay.start();
+    }
+
+    public static void stopMock(){
+        wiremockFastpay.stop();
+    }
 
     protected LimitedCreditCard registerCard() {
         FastpayTokenizationInput input = FastpayTokenizationInput.builder()
