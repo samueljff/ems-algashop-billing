@@ -24,7 +24,7 @@ public class CreditCardQueryServiceImpl implements CreditCardQueryService {
     public CreditCardOutput findOne(UUID customerId, UUID creditCardId) {
         return creditCardRepository.findByCustomerIdAndId(customerId, creditCardId)
                 .map(c-> mapper.convert(c, CreditCardOutput.class))
-                .orElseThrow(()-> new CreditCardNotFoundException());
+                .orElseThrow(()-> new CreditCardNotFoundException(customerId.toString()));
     }
 
     @Override

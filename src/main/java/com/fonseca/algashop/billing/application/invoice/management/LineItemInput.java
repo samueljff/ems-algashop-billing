@@ -19,7 +19,4 @@ public class LineItemInput {
     private String name;
     @NotNull
     private BigDecimal amount;
-    @NotNull
-    @Positive
-    private Integer quantity;
 }

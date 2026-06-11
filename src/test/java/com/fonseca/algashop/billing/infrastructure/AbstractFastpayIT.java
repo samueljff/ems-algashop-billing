@@ -2,12 +2,16 @@ package com.fonseca.algashop.billing.infrastructure;
 
 import com.fonseca.algashop.billing.domain.model.creditcard.LimitedCreditCard;
 import com.fonseca.algashop.billing.infrastructure.creditcard.fastpay.*;
+import com.fonseca.algashop.billing.presentation.BadGatewayException;
+import com.fonseca.algashop.billing.presentation.GatewayTimeoutException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.TemplateEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.time.Year;
 import java.util.Collections;
@@ -57,7 +61,14 @@ public abstract class AbstractFastpayIT {
             .expYear(Year.now().getValue() + 5)
             .build();
 
-        FastpayTokenizedCreditCardModel response = tokenizationAPIClient.tokenize(input);
+        FastpayTokenizedCreditCardModel response;
+        try {
+            response = tokenizationAPIClient.tokenize(input);
+        } catch (ResourceAccessException e) {
+            throw new GatewayTimeoutException("Fastpay Tokenization API Timeout", e);
+        } catch (HttpClientErrorException e) {
+            throw new BadGatewayException("Fastpay Tokenization API Bad Gateway", e);
+        }
         return creditCardProvider.register(validCustomerId, response.getTokenizedCard());
     }
 }

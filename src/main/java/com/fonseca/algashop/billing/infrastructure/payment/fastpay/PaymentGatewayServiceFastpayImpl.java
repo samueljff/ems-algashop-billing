@@ -86,7 +86,7 @@ public class PaymentGatewayServiceFastpayImpl implements PaymentGatewayService {
             case CREDIT_CARD -> {
                 builder.method(FastpayPaymentMethod.CREDIT.name());
                 CreditCard creditCard = creditCardRepository.findById(request.getCreditCardId())
-                    .orElseThrow(() -> new CreditCardNotFoundException());
+                    .orElseThrow(() -> new CreditCardNotFoundException(request.getCreditCardId().toString()));
                 builder.creditCardId(creditCard.getGatewayCode());
             }
             case GATEWAY_BALANCE -> {

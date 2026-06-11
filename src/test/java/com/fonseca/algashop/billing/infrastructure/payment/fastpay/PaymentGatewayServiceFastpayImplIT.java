@@ -8,6 +8,7 @@ import com.fonseca.algashop.billing.domain.model.invoice.PaymentMethod;
 import com.fonseca.algashop.billing.domain.model.invoice.payment.Payment;
 import com.fonseca.algashop.billing.domain.model.invoice.payment.PaymentRequest;
 import com.fonseca.algashop.billing.infrastructure.AbstractFastpayIT;
+import com.fonseca.algashop.billing.presentation.GatewayTimeoutException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -66,5 +67,82 @@ class PaymentGatewayServiceFastpayImplIT extends AbstractFastpayIT {
         Payment payment = paymentGatewayServiceFastpay.capture(request);
 
         Assertions.assertThat(payment.getInvoiceId()).isEqualTo(invoiceId);
+    }
+
+    @Test
+    public void shouldThrowGatewayTimeoutException_whenFastpayIsUnavailable() {
+        stopMock();
+
+        try {
+            PaymentRequest request = PaymentRequest.builder()
+                .paymentMethod(PaymentMethod.GATEWAY_BALANCE)
+                .amount(new BigDecimal("1000.00"))
+                .invoiceId(UUID.randomUUID())
+                .payer(InvoiceTestDataBuilder.aPayer())
+                .build();
+
+            Assertions.assertThatThrownBy(() -> paymentGatewayServiceFastpay.capture(request))
+                .isInstanceOf(GatewayTimeoutException.class);
+        } finally {
+            startMock();
+        }
+    }
+
+    @Test
+    public void shouldProcessPaymentWithGatewayBalance() {
+        UUID invoiceId = UUID.randomUUID();
+
+        PaymentRequest request = PaymentRequest.builder()
+            .paymentMethod(PaymentMethod.GATEWAY_BALANCE)
+            .amount(new BigDecimal("1000.00"))
+            .invoiceId(invoiceId)
+            .payer(InvoiceTestDataBuilder.aPayer())
+            .build();
+
+        Payment payment = paymentGatewayServiceFastpay.capture(request);
+
+        Assertions.assertThat(payment.getInvoiceId()).isEqualTo(invoiceId);
+    }
+
+    @Test
+    public void shouldFindPaymentByGatewayCode() {
+        UUID invoiceId = UUID.randomUUID();
+
+        PaymentRequest request = PaymentRequest.builder()
+            .paymentMethod(PaymentMethod.GATEWAY_BALANCE)
+            .amount(new BigDecimal("1000.00"))
+            .invoiceId(invoiceId)
+            .payer(InvoiceTestDataBuilder.aPayer())
+            .build();
+
+        Payment payment = paymentGatewayServiceFastpay.capture(request);
+
+        Payment found = paymentGatewayServiceFastpay.findByCode(payment.getGateWayCode());
+
+        Assertions.assertThat(found.getGateWayCode()).isEqualTo(payment.getGateWayCode());
+        Assertions.assertThat(found.getStatus()).isNotNull();
+        Assertions.assertThat(found.getMethod()).isNotNull();
+    }
+
+    @Test
+    public void shouldThrowGatewayTimeoutException_whenFastpayIsUnavailable_OnFindByCode() {
+        UUID invoiceId = UUID.randomUUID();
+
+        PaymentRequest request = PaymentRequest.builder()
+            .paymentMethod(PaymentMethod.GATEWAY_BALANCE)
+            .amount(new BigDecimal("1000.00"))
+            .invoiceId(invoiceId)
+            .payer(InvoiceTestDataBuilder.aPayer())
+            .build();
+
+        Payment payment = paymentGatewayServiceFastpay.capture(request);
+        stopMock();
+
+        try {
+            Assertions.assertThatThrownBy(() -> paymentGatewayServiceFastpay.findByCode(payment.getGateWayCode()))
+                .isInstanceOf(GatewayTimeoutException.class);
+        } finally {
+            startMock();
+        }
     }
 }
