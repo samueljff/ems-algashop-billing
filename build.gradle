@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.Exec
+
 buildscript {
 	dependencies {
 		classpath 'org.flywaydb:flyway-core:12.6.1'
@@ -98,4 +100,17 @@ tasks.register('integrationTest', Test) {
 		includeTestsMatching "*IT"
 		excludeTestsMatching "*Test"
 	}
+}
+
+bootJar {
+	archiveFileName = 'billing.jar'
+}
+
+tasks.register('dockerBuild', Exec) {
+	description = 'Builds a multi-platform Docker image using Buildx'
+	group = 'build'
+	dependsOn('bootJar')
+	workingDir project.rootDir
+	commandLine 'docker', 'buildx', 'build', '--platform', 'linux/arm64/v8,linux/amd64',
+		'--tag', 'algashop/billing:dev', '.'
 }
