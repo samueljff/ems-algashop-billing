@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.Exec
-
 buildscript {
 	dependencies {
 		classpath 'org.flywaydb:flyway-core:12.6.1'
@@ -83,6 +81,17 @@ def mockitoJvmArgs = [
 		"-javaagent:${configurations.mockitoAgent.asPath}",
 		"-Xshare:off" // Desabilita Class Data Sharing para evitar warning de bootstrap classpath
 ]
+
+test {
+	filter {
+		excludeTestsMatching("*IT")
+	}
+	jvmArgs += mockitoJvmArgs
+}
+
+tasks.named('check') {
+	dependsOn(test, integrationTest)
+}
 
 tasks.register('integrationTest', Test) {
 	description = 'Run integrationTest.'
