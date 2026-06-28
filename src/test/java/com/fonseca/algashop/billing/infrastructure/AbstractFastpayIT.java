@@ -4,6 +4,7 @@ import com.fonseca.algashop.billing.domain.model.creditcard.LimitedCreditCard;
 import com.fonseca.algashop.billing.infrastructure.creditcard.fastpay.*;
 import com.fonseca.algashop.billing.presentation.BadGatewayException;
 import com.fonseca.algashop.billing.presentation.GatewayTimeoutException;
+import com.fonseca.algashop.billing.utils.TestcontainerPostgreSQLConfig;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.ClasspathFileSource;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
@@ -19,7 +20,7 @@ import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
-@Import({FastpayCreditCardTokenizationAPIClientConfig.class})
+@Import({FastpayCreditCardTokenizationAPIClientConfig.class, TestcontainerPostgreSQLConfig.class})
 public abstract class AbstractFastpayIT {
 
     protected static final String alwaysPaidCardNumber = "4622943127011022";
