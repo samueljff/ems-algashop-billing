@@ -1,4 +1,4 @@
-package com.fonseca.algashop.billing.infrastructure.utility.config;
+package com.fonseca.algashop.billing.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

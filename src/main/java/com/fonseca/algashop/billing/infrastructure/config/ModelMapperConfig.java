@@ -1,4 +1,4 @@
-package com.fonseca.algashop.billing.infrastructure.utility.mapper;
+package com.fonseca.algashop.billing.infrastructure.config;
 
 import com.fonseca.algashop.billing.application.utility.Mapper;
 import org.modelmapper.ModelMapper;
