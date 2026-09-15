@@ -34,8 +34,6 @@ public class ResilientFastpayPaymentAPIClient {
 
     /**
      * Captura um pagamento. NÃO idempotente
-     * reexecutar em caso de falha na resposta poderia gerar cobrança duplicada
-     * ao cliente. Usa o circuito sem retry.
      */
     @ConcurrencyLimit(10)
     public FastpayPaymentModel capture(FastpayPaymentInput input) {
@@ -75,11 +73,11 @@ public class ResilientFastpayPaymentAPIClient {
         }
     }
 
-    private FastpayPaymentModel doFindByCode(String gatewayCode) {
+    private FastpayPaymentModel doFindByCode(String paymentId) {
         try {
-            return fastpayPaymentAPIClient.findById(gatewayCode);
+            return fastpayPaymentAPIClient.findById(paymentId);
         } catch (HttpClientErrorException e) {
-            log.warn("Client error finding payment {}, status: {}", gatewayCode, e.getStatusCode());
+            log.warn("Client error finding payment {}, status: {}", paymentId, e.getStatusCode());
             throw new BadGatewayException.ClientErrorException("Fastpay API Client Error", e);
         } catch (RestClientException e) {
             throw translateException(e);
