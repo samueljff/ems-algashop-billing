@@ -3,6 +3,9 @@ package com.fonseca.algashop.billing.infrastructure.payment.fastpay;
 import com.fonseca.algashop.billing.presentation.BadGatewayException;
 import com.fonseca.algashop.billing.presentation.GatewayTimeoutException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryCircuitBreaker;
+import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryConfig;
+import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryConfigBuilder;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
@@ -19,14 +22,14 @@ import org.springframework.web.client.RestClientException;
 public class ResilientFastpayPaymentAPIClient {
 
     private final FastpayPaymentAPIClient fastpayPaymentAPIClient;
-    private final CircuitBreaker circuitBreakerNoRetry;
-    private final CircuitBreaker circuitBreakerWithRetry;
+    private final FrameworkRetryCircuitBreaker circuitBreakerNoRetry;
+    private final FrameworkRetryCircuitBreaker circuitBreakerWithRetry;
 
     public ResilientFastpayPaymentAPIClient(FastpayPaymentAPIClient fastpayPaymentAPIClient,
-                                            CircuitBreakerFactory circuitBreakerFactory) {
+                                            CircuitBreakerFactory<FrameworkRetryConfig, FrameworkRetryConfigBuilder> circuitBreakerFactory) {
         this.fastpayPaymentAPIClient = fastpayPaymentAPIClient;
-        this.circuitBreakerNoRetry = circuitBreakerFactory.create("fastpayCB-noRetry");
-        this.circuitBreakerWithRetry = circuitBreakerFactory.create("fastpayCB-withRetry");
+        this.circuitBreakerNoRetry = (FrameworkRetryCircuitBreaker)circuitBreakerFactory.create("fastpayCB-noRetry");
+        this.circuitBreakerWithRetry = (FrameworkRetryCircuitBreaker)circuitBreakerFactory.create("fastpayCB-withRetry");
     }
 
     /**
@@ -47,10 +50,18 @@ public class ResilientFastpayPaymentAPIClient {
     @ConcurrencyLimit(10)
     public FastpayPaymentModel findByCode(String gatewayCode) {
         try {
-            return circuitBreakerWithRetry.run(() -> doFindByCode(gatewayCode));
+            return circuitBreakerWithRetry.run(() -> {
+                logCircuitState("findByCode", circuitBreakerWithRetry);
+               return doFindByCode(gatewayCode);
+            });
         } catch (NoFallbackAvailableException e) {
             throw unwrapException(e);
         }
+    }
+
+    private void logCircuitState(String operation, FrameworkRetryCircuitBreaker circuitBreaker) {
+        log.info("FastpayAPI CircuitBreaker [{}] state is {}", operation,
+            circuitBreaker.getCircuitBreakerPolicy().getState());
     }
 
     private FastpayPaymentModel doCapture(FastpayPaymentInput input) {
