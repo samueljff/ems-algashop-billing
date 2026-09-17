@@ -28,18 +28,15 @@ public class PaymentGatewayServiceFastpayImpl implements PaymentGatewayService {
 
     @Override
     public Payment capture(PaymentRequest request) {
-        log.info("Iniciando captura de pagamento — invoiceId: {}, method: {}", request.getInvoiceId(), request.getPaymentMethod());
         FastpayPaymentInput input = convertToInput(request);
         FastpayPaymentModel response = fastpayPaymentAPIClient.capture(input);
-        log.info("Pagamento capturado com sucesso — gatewayCode: {}, status: {}", response.getId(), response.getStatus());
+
         return convertToPayment(response);
     }
 
     @Override
     public Payment findByCode(String gatewayCode) {
-        log.info("Buscando pagamento no Fastpay — gatewayCode: {}", gatewayCode);
-        FastpayPaymentModel response = fastpayPaymentAPIClient.findByCode(gatewayCode);
-        log.info("Pagamento encontrado — gatewayCode: {}, status: {}", response.getId(), response.getStatus());
+        FastpayPaymentModel response = fastpayPaymentAPIClient.findById(gatewayCode);
         return convertToPayment(response);
     }
 

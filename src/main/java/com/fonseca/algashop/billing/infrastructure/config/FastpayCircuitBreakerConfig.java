@@ -1,5 +1,6 @@
 package com.fonseca.algashop.billing.infrastructure.config;
 
+import com.fonseca.algashop.billing.infrastructure.payment.fastpay.FastpayPaymentCaptureFailed;
 import com.fonseca.algashop.billing.presentation.BadGatewayException;
 import com.fonseca.algashop.billing.presentation.GatewayTimeoutException;
 import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryCircuitBreakerFactory;
@@ -20,8 +21,9 @@ public class FastpayCircuitBreakerConfig {
         RetryPolicy retryPolicy = RetryPolicy.builder()
             .maxRetries(3)
             .multiplier(2)
-            .delay(Duration.ofSeconds(2))
+            .delay(Duration.ofSeconds(3))
             .includes(GatewayTimeoutException.class, BadGatewayException.ServerErrorException.class)
+            .excludes(FastpayPaymentCaptureFailed.class)
             .build();
 
         // Operações NÃO idempotentes (criar cartão, capturar pagamento):
@@ -29,6 +31,7 @@ public class FastpayCircuitBreakerConfig {
         RetryPolicy noRetryPolicy = RetryPolicy.builder()
             .maxRetries(0)
             .includes(GatewayTimeoutException.class, BadGatewayException.ServerErrorException.class)
+            .excludes(FastpayPaymentCaptureFailed.class)
             .build();
 
         return factory -> {

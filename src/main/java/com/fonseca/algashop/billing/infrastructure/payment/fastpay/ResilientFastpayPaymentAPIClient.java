@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryCircuitBreaker;
 import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryConfig;
 import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryConfigBuilder;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.cloud.client.circuitbreaker.NoFallbackAvailableException;
 import org.springframework.core.retry.RetryException;
@@ -17,90 +16,140 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
+import java.net.SocketTimeoutException;
+
 @Component
 @Slf4j
 public class ResilientFastpayPaymentAPIClient {
 
     private final FastpayPaymentAPIClient fastpayPaymentAPIClient;
-    private final FrameworkRetryCircuitBreaker circuitBreakerNoRetry;
-    private final FrameworkRetryCircuitBreaker circuitBreakerWithRetry;
+    private final FrameworkRetryCircuitBreaker circuitBreaker;
 
-    public ResilientFastpayPaymentAPIClient(FastpayPaymentAPIClient fastpayPaymentAPIClient,
-                                            CircuitBreakerFactory<FrameworkRetryConfig, FrameworkRetryConfigBuilder> circuitBreakerFactory) {
+    public ResilientFastpayPaymentAPIClient(
+        CircuitBreakerFactory<FrameworkRetryConfig, FrameworkRetryConfigBuilder> circuitBreakerFactory,
+        FastpayPaymentAPIClient fastpayPaymentAPIClient
+    ) {
         this.fastpayPaymentAPIClient = fastpayPaymentAPIClient;
-        this.circuitBreakerNoRetry = (FrameworkRetryCircuitBreaker)circuitBreakerFactory.create("fastpayCB-noRetry");
-        this.circuitBreakerWithRetry = (FrameworkRetryCircuitBreaker)circuitBreakerFactory.create("fastpayCB-withRetry");
+        this.circuitBreaker = (FrameworkRetryCircuitBreaker) circuitBreakerFactory.create("fastpayCB-withRetry");
     }
 
-    /**
-     * Captura um pagamento. NÃO idempotente
-     */
     @ConcurrencyLimit(10)
     public FastpayPaymentModel capture(FastpayPaymentInput input) {
-        try {
-            return circuitBreakerNoRetry.run(() -> doCapture(input));
-        } catch (NoFallbackAvailableException e) {
-            throw unwrapException(e);
-        }
-    }
+        log.info("Trying to capture payment on Fastpay");
 
-    /** GET — leitura pura, idempotente. Usa o circuito com retry. */
-    @ConcurrencyLimit(10)
-    public FastpayPaymentModel findByCode(String gatewayCode) {
         try {
-            return circuitBreakerWithRetry.run(() -> {
-                logCircuitState("findByCode", circuitBreakerWithRetry);
-               return doFindByCode(gatewayCode);
+            return circuitBreaker.run(() -> {
+                try {
+                    return doCapture(input);
+                } catch (RestClientException e) {
+                    throw new FastpayPaymentCaptureFailed(
+                        "Fail to capture payment of reference code %s"
+                            .formatted(input.getReferenceCode()), e);
+                }
             });
         } catch (NoFallbackAvailableException e) {
             throw unwrapException(e);
         }
     }
 
-    private void logCircuitState(String operation, FrameworkRetryCircuitBreaker circuitBreaker) {
-        log.info("FastpayAPI CircuitBreaker [{}] state is {}", operation,
-            circuitBreaker.getCircuitBreakerPolicy().getState());
+    @ConcurrencyLimit(10)
+    public FastpayPaymentModel findById(String paymentId) {
+        log.info("Trying to find payment {} on Fastpay", paymentId);
+
+        try {
+            return circuitBreaker.run(() -> doFindById(paymentId));
+        } catch (NoFallbackAvailableException e) {
+            throw unwrapException(e);
+        }
+    }
+
+    @ConcurrencyLimit(10)
+    public void refund(String paymentId) {
+        log.info("Trying to refund payment {} on Fastpay", paymentId);
+
+        try {
+            circuitBreaker.run(() -> {
+                doRefund(paymentId);
+                return Void.TYPE;
+            });
+        } catch (NoFallbackAvailableException e) {
+            throw unwrapException(e);
+        }
+    }
+
+    @ConcurrencyLimit(10)
+    public void cancel(String paymentId) {
+        log.info("Trying to cancel payment {} on Fastpay", paymentId);
+
+        try {
+            circuitBreaker.run(() -> {
+                doCancel(paymentId);
+                return Void.TYPE;
+            });
+        } catch (NoFallbackAvailableException e) {
+            throw unwrapException(e);
+        }
+    }
+
+    private RuntimeException unwrapException(NoFallbackAvailableException e) {
+        if (e.getCause() instanceof RetryException re) {
+            if (re.getCause() instanceof GatewayTimeoutException gte) {
+                return gte;
+            }
+            if (re.getCause() instanceof BadGatewayException bge) {
+                return bge;
+            }
+        }
+
+        return e;
     }
 
     private FastpayPaymentModel doCapture(FastpayPaymentInput input) {
         try {
             return fastpayPaymentAPIClient.capture(input);
-        } catch (HttpClientErrorException e) {
-            log.warn("Client error capturing payment, status: {}", e.getStatusCode());
-            throw new BadGatewayException.ClientErrorException("Fastpay API Client Error", e);
         } catch (RestClientException e) {
             throw translateException(e);
         }
     }
 
-    private FastpayPaymentModel doFindByCode(String paymentId) {
+    private FastpayPaymentModel doFindById(String paymentId) {
         try {
             return fastpayPaymentAPIClient.findById(paymentId);
-        } catch (HttpClientErrorException e) {
-            log.warn("Client error finding payment {}, status: {}", paymentId, e.getStatusCode());
-            throw new BadGatewayException.ClientErrorException("Fastpay API Client Error", e);
+        } catch (RestClientException e) {
+            throw translateException(e);
+        }
+    }
+
+    private void doRefund(String paymentId) {
+        try {
+            fastpayPaymentAPIClient.refund(paymentId);
+        } catch (RestClientException e) {
+            throw translateException(e);
+        }
+    }
+
+    private void doCancel(String paymentId) {
+        try {
+            fastpayPaymentAPIClient.cancel(paymentId);
         } catch (RestClientException e) {
             throw translateException(e);
         }
     }
 
     private RuntimeException translateException(RestClientException e) {
-        if (e instanceof ResourceAccessException) {
+        if (e.getCause() instanceof SocketTimeoutException
+            || e instanceof ResourceAccessException) {
             return new GatewayTimeoutException("Fastpay API Timeout", e);
         }
+
+        if (e instanceof HttpClientErrorException) {
+            return new BadGatewayException.ClientErrorException("Fastpay API Bad Gateway", e);
+        }
+
         if (e instanceof HttpServerErrorException) {
             return new BadGatewayException.ServerErrorException("Fastpay API Bad Gateway", e);
         }
-        return new BadGatewayException("Fastpay API Bad Gateway", e);
-    }
 
-    private RuntimeException unwrapException(NoFallbackAvailableException e) {
-        if (e.getCause() instanceof RetryException re && re.getCause() instanceof RuntimeException cause) {
-            return cause;
-        }
-        if (e.getCause() instanceof RuntimeException cause) {
-            return cause;
-        }
-        return e;
+        return new BadGatewayException("Fastpay API Bad Gateway", e);
     }
 }
