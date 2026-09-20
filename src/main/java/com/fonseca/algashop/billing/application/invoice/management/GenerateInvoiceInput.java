@@ -20,7 +20,7 @@ public class GenerateInvoiceInput{
     private String orderId;
     @NotNull
     private UUID customerId;
-    @NotBlank
+    @Valid
     private PaymentSettingsInput paymentSettings;
     @NotNull
     @Valid

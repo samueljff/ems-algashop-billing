@@ -18,6 +18,9 @@ import org.springframework.web.client.RestClientException;
 
 import java.util.Optional;
 
+import static com.fonseca.algashop.billing.infrastructure.config.resilience.FastpayCircuitBreakerConfig.fastpayCBNoWithRetryId;
+import static com.fonseca.algashop.billing.infrastructure.config.resilience.FastpayCircuitBreakerConfig.fastpayCBWithRetryId;
+
 @Component
 @Slf4j
 public class ResilientFastPayCreditCardAPIClient {
@@ -29,8 +32,8 @@ public class ResilientFastPayCreditCardAPIClient {
     public ResilientFastPayCreditCardAPIClient(FastPayCreditCardAPIClient fastPayCreditCardAPIClient,
                                                CircuitBreakerFactory<FrameworkRetryConfig, FrameworkRetryConfigBuilder> circuitBreakerFactory) {
         this.fastPayCreditCardAPIClient = fastPayCreditCardAPIClient;
-        this.circuitBreakerNoRetry = (FrameworkRetryCircuitBreaker) circuitBreakerFactory.create("fastpayCB-noRetry");
-        this.circuitBreakerWithRetry = (FrameworkRetryCircuitBreaker) circuitBreakerFactory.create("fastpayCB-withRetry");
+        this.circuitBreakerNoRetry = (FrameworkRetryCircuitBreaker) circuitBreakerFactory.create(fastpayCBNoWithRetryId);
+        this.circuitBreakerWithRetry = (FrameworkRetryCircuitBreaker) circuitBreakerFactory.create(fastpayCBWithRetryId);
     }
 
     /**

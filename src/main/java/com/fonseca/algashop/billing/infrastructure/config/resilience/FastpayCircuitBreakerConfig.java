@@ -1,4 +1,4 @@
-package com.fonseca.algashop.billing.infrastructure.config;
+package com.fonseca.algashop.billing.infrastructure.config.resilience;
 
 import com.fonseca.algashop.billing.infrastructure.payment.fastpay.FastpayPaymentCaptureFailed;
 import com.fonseca.algashop.billing.presentation.BadGatewayException;
@@ -13,6 +13,9 @@ import java.time.Duration;
 
 @Configuration
 public class FastpayCircuitBreakerConfig {
+
+    public static final String fastpayCBWithRetryId = "fastpayCBWithRetry";
+    public static final String fastpayCBNoWithRetryId = "fastpayCBNoWithRetry";
 
     @Bean
     public Customizer<FrameworkRetryCircuitBreakerFactory> fastpayCustomizer() {
@@ -39,13 +42,13 @@ public class FastpayCircuitBreakerConfig {
                 .retryPolicy(retryPolicy)
                 .openTimeout(Duration.ofSeconds(20))
                 .resetTimeout(Duration.ofSeconds(30))
-                .build(), "fastpayCB-withRetry");
+                .build(), fastpayCBWithRetryId);
 
             factory.configure(builder -> builder
                 .retryPolicy(noRetryPolicy)
                 .openTimeout(Duration.ofSeconds(20))
                 .resetTimeout(Duration.ofSeconds(30))
-                .build(), "fastpayCB-noRetry");
+                .build(), fastpayCBNoWithRetryId);
         };
     }
 }
