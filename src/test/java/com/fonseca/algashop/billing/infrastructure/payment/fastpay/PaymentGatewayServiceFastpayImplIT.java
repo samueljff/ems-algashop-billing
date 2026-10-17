@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @SpringBootTest
 @Transactional
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class PaymentGatewayServiceFastpayImplIT extends AbstractFastpayIT {
 
     @Autowired
