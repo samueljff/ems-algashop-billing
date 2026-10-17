@@ -11,6 +11,8 @@ import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemp
 import com.github.tomakehurst.wiremock.extension.responsetemplating.TemplateEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
@@ -31,6 +33,9 @@ public abstract class AbstractFastpayIT {
 
     @Autowired
     protected FastpayCreditCardTokenizationAPIClient tokenizationAPIClient;
+
+    @MockitoBean
+    private JwtDecoder jwtDecoder;
 
     protected static WireMockServer wiremockFastpay;
 
