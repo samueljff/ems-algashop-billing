@@ -3,6 +3,8 @@ package com.fonseca.algashop.billing.infrastructure.config.resilience;
 import com.fonseca.algashop.billing.infrastructure.payment.fastpay.FastpayPaymentCaptureFailed;
 import com.fonseca.algashop.billing.presentation.BadGatewayException;
 import com.fonseca.algashop.billing.presentation.GatewayTimeoutException;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.circuitbreaker.retry.FrameworkRetryCircuitBreakerFactory;
 import org.springframework.cloud.client.circuitbreaker.Customizer;
 import org.springframework.context.annotation.Bean;
@@ -12,19 +14,23 @@ import org.springframework.core.retry.RetryPolicy;
 import java.time.Duration;
 
 @Configuration
+@Log4j2
 public class FastpayCircuitBreakerConfig {
 
     public static final String fastpayCBWithRetryId = "fastpayCBWithRetry";
     public static final String fastpayCBNoWithRetryId = "fastpayCBNoWithRetry";
 
     @Bean
-    public Customizer<FrameworkRetryCircuitBreakerFactory> fastpayCustomizer() {
+    public Customizer<FrameworkRetryCircuitBreakerFactory> fastpayCustomizer(
+        @Value("${algashop.resilience.retry.max-retries:3}") int maxRetries,
+        @Value("${algashop.resilience.retry.delay:3s}") Duration delay) {
 
-        // Operações idempotentes (leituras, exclusões): pode reexecutar com segurança
+        log.info("Retry config: maxRetries={}, delay={}", maxRetries, delay);
+
         RetryPolicy retryPolicy = RetryPolicy.builder()
-            .maxRetries(3)
+            .maxRetries(maxRetries)
             .multiplier(2)
-            .delay(Duration.ofSeconds(3))
+            .delay(delay)
             .includes(GatewayTimeoutException.class, BadGatewayException.ServerErrorException.class)
             .excludes(FastpayPaymentCaptureFailed.class)
             .build();
